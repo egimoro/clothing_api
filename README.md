@@ -30,7 +30,7 @@ While the table order has the columns:
    DELETE: delete selected data from the table
    PUT: update the table
    
- The tests can be done on [Click here](Postman)
+ The tests can be done on [Postman](https://www.getpostman.com/)
    
  Here are a few examples :
  
