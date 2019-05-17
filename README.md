@@ -33,7 +33,7 @@ While the table order has the columns:
  order_date: date of the order
  
  complete: a boolean whether the order is complete or not
- 
+  
  delivered: a boolean whether the order has been delivered or not
  
  delivery_date: date of the delivery
