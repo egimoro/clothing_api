@@ -3,14 +3,43 @@ from flask import Flask, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_restplus import Resource, Api, fields
 from flask_marshmallow import Marshmallow
+from functools import wraps
 
 
 app = Flask(__name__)
+
+authorizations = {
+    'apikey': {
+        'type': 'apiKey',
+        'in': 'header',
+        'name': 'X-API-KEY'
+    }
+}
+api = Api(app, authorizations=authorizations)
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
-api = Api(app)
+
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI2')
+
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'X-API-KEY' in request.headers:
+            token = request.headers['X-API-KEY']
+        
+        if not token:
+            return {'message': 'Token is missing.'}, 401
+        
+        if token != 'mytoken':
+            return {'message': 'Your token is wrong wrong!!!'}, 401
+        
+        print('TOKEN: {}'.format(token))
+        return f(*args, **kwargs)
+    return decorated
 
 
 class User(db.Model):
@@ -85,6 +114,8 @@ order_schemas = OrderSchema(many=True)
 
 @api.route('/user')
 class UserList(Resource):
+    @api.doc(security='apikey')
+    @token_required
     def get(self):
         users = User.query.all()
         result = user_schemas.dump(users)
@@ -101,7 +132,7 @@ class UserList(Resource):
         db.session.add(new_user)
         db.session.commit()
 
-        result = user_schema.dump(new_user)
+        result = user_schema.load(new_user)
 
         return result, 201
 
